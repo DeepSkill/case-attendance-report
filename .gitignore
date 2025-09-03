@@ -4,13 +4,21 @@
 /node_modules
 /.pnp
 .pnp.js
+pnpm-lock.yaml
+
+# envs
+.env
+.env.*
+.env*.local
+web/.env.local
+api/.env
 
 # testing
 /coverage
 
 # next.js
-/.next/
-/out/
+web/.next
+web/out
 
 # production
 /build
@@ -24,13 +32,16 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
-.env
-
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Strapi SQLite + caches
+api/.tmp/
+api/.cache/
+api/public/uploads/
+api/database/*.db
+api/node_modules
