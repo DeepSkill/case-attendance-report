@@ -1,0 +1,20 @@
+{
+  "name": "deepskill-live-pairing",
+  "private": true,
+  "packageManager": "pnpm@9",
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"pnpm --dir api develop\" \"pnpm --dir web dev\"",
+    "seed": "pnpm --dir api run seed || echo 'no seed script'",
+    "test": "pnpm --dir web test",
+    "check": "node scripts/ensure-env.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "dotenv-cli": "^7.4.1",
+    "cross-env": "^7.0.3"
+  }
+}

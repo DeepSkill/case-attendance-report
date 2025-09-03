@@ -1,0 +1,17 @@
+{
+  "kind": "collectionType",
+  "collectionName": "attendances",
+  "info": {
+    "singularName": "attendance",
+    "pluralName": "attendances",
+    "displayName": "Attendance"
+  },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "programId": { "type": "integer", "required": true },
+    "coachId": { "type": "integer", "required": true },
+    "present": { "type": "boolean", "required": true },
+    "rating": { "type": "decimal", "required": false },
+    "date": { "type": "date", "required": true }
+  }
+}
