@@ -1,9 +1,7 @@
+import { AttendanceKpis } from "./types";
+
 export type AttendanceItem = { present: boolean; rating?: number };
-export type Kpis = {
-  attendancePct: number;
-  noShowPct: number;
-  avgRating: number;
-};
+export type Kpis = AttendanceKpis;
 
 export function computeKpisFromItems(items: AttendanceItem[]): Kpis {
   if (!items || items.length === 0)
