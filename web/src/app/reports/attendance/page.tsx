@@ -1,18 +1,69 @@
-import { fetchAttendanceReport } from "@/app/lib/api";
+"use client";
 
-export default async function AttendancePage({
-  searchParams,
-}: {
-  searchParams: { programId?: string };
-}) {
-  const programId = Number(searchParams?.programId ?? "1");
-  let data: Awaited<ReturnType<typeof fetchAttendanceReport>> | null = null;
-  let error: string | null = null;
-  try {
-    data = await fetchAttendanceReport(programId);
-  } catch (e: any) {
-    error = e?.message ?? "Unknown error";
-  }
+import { fetchAttendanceReport } from "@/app/lib/api";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+
+export default function AttendancePage() {
+  const searchParams = useSearchParams();
+  const programId = Number(searchParams.get("programId") ?? "1");
+  const [data, setData] = useState<Awaited<
+    ReturnType<typeof fetchAttendanceReport>
+  > | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<"rating" | "date" | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const result = await fetchAttendanceReport(programId);
+        setData(result);
+        setError(null);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Unknown error");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [programId]);
+
+  const handleSort = (column: "rating" | "date") => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(column);
+      setSortOrder("desc");
+    }
+  };
+
+  const sortedItems = data?.items
+    ? [...data.items].sort((a, b) => {
+        if (!sortBy) return 0;
+
+        let aValue: number | string;
+        let bValue: number | string;
+
+        if (sortBy === "rating") {
+          aValue = a.rating ?? 0;
+          bValue = b.rating ?? 0;
+        } else if (sortBy === "date") {
+          aValue = new Date(a.date).getTime();
+          bValue = new Date(b.date).getTime();
+        } else {
+          return 0;
+        }
+
+        if (sortOrder === "asc") {
+          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        } else {
+          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        }
+      })
+    : [];
 
   return (
     <main style={{ padding: 24 }}>
@@ -32,27 +83,66 @@ export default async function AttendancePage({
             <Kpi label="Avg Rating" value={data.kpis.avgRating.toFixed(2)} />
           </section>
 
-          {/* TODO (candidate):
-1) Map rows from data.items
-2) Add ONE enhancement: client-side sort on Rating OR simple pagination (10/pg)
-3) Handle empty state
-*/}
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
                 <Th>Program</Th>
                 <Th>Coach</Th>
                 <Th>Present</Th>
-                <Th /* TODO: make clickable to sort */>Rating</Th>
-                <Th>Date</Th>
+                <Th
+                  style={{ cursor: "pointer", userSelect: "none" }}
+                  onClick={() => handleSort("rating")}
+                >
+                  Rating{" "}
+                  {sortBy === "rating" && (sortOrder === "asc" ? "↑" : "↓")}
+                </Th>
+                <Th
+                  style={{ cursor: "pointer", userSelect: "none" }}
+                  onClick={() => handleSort("date")}
+                >
+                  Date {sortBy === "date" && (sortOrder === "asc" ? "↑" : "↓")}
+                </Th>
               </tr>
             </thead>
-            <tbody>{/* TODO: render rows */}</tbody>
+            <tbody>
+              {sortedItems.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    style={{ textAlign: "center", padding: 24, color: "#666" }}
+                  >
+                    No attendance records found
+                  </td>
+                </tr>
+              ) : (
+                sortedItems.map((item, index) => (
+                  <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                    <td style={{ padding: "8px 4px" }}>{item.programId}</td>
+                    <td style={{ padding: "8px 4px" }}>{item.coachId}</td>
+                    <td style={{ padding: "8px 4px" }}>
+                      <span
+                        style={{
+                          color: item.present ? "#22c55e" : "#ef4444",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {item.present ? "✓ Present" : "✗ Absent"}
+                      </span>
+                    </td>
+                    <td style={{ padding: "8px 4px" }}>
+                      {item.rating ? item.rating.toFixed(1) : "N/A"}
+                    </td>
+                    <td style={{ padding: "8px 4px" }}>
+                      {new Date(item.date).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
           </table>
-          {/* TODO (optional): pager UI if candidate chooses pagination */}
         </>
       )}
-      {!error && !data && <p>Loading…</p>}
+      {loading && <p>Loading…</p>}
     </main>
   );
 }
@@ -73,15 +163,25 @@ function Kpi({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Th({ children }: { children: React.ReactNode }) {
+function Th({
+  children,
+  style,
+  onClick,
+}: {
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+  onClick?: () => void;
+}) {
   return (
     <th
       style={{
         textAlign: "left",
         borderBottom: "1px solid #ccc",
         padding: "8px 4px",
+        ...style,
       }}
       scope="col"
+      onClick={onClick}
     >
       {children}
     </th>
