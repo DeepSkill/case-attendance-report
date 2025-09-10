@@ -7,7 +7,11 @@ module.exports = {
       path: "/reports/attendance",
       handler: "report.attendance",
       config: {
-        policies: ["global::is-hr"],
+        policies: ["is-hr"],
+        // optional: make it public
+        // auth: false,
+        // optional: add policies or middlewares
+        // middlewares: [],
       },
     },
   ],

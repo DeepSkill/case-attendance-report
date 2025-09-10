@@ -40,7 +40,7 @@ yarn-error.log*
 next-env.d.ts
 
 # Strapi SQLite + caches
-api/.tmp/
+#api/.tmp/
 api/.cache/
 api/public/uploads/
 api/database/*.db

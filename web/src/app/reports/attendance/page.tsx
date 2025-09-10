@@ -1,4 +1,4 @@
-import { fetchAttendanceReport } from "@/lib/api";
+import { fetchAttendanceReport } from "@/app/lib/api";
 
 export default async function AttendancePage({
   searchParams,

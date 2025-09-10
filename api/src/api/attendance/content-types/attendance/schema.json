@@ -6,12 +6,28 @@
     "pluralName": "attendances",
     "displayName": "Attendance"
   },
-  "options": { "draftAndPublish": false },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
   "attributes": {
-    "programId": { "type": "integer", "required": true },
-    "coachId": { "type": "integer", "required": true },
-    "present": { "type": "boolean", "required": true },
-    "rating": { "type": "decimal", "required": false },
-    "date": { "type": "date", "required": true }
+    "programId": {
+      "type": "integer"
+    },
+    "coachId": {
+      "type": "integer"
+    },
+    "present": {
+      "type": "boolean",
+      "default": false
+    },
+    "rating": {
+      "type": "integer",
+      "min": 1,
+      "max": 5
+    },
+    "date": {
+      "type": "datetime"
+    }
   }
 }
