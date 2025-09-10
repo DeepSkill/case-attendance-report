@@ -7,11 +7,11 @@
 pnpm-lock.yaml
 
 # envs
-.env
-.env.*
-.env*.local
-web/.env.local
-api/.env
+# .env
+# .env.*
+# .env*.local
+# web/.env.local
+# api/.env
 
 # testing
 /coverage
