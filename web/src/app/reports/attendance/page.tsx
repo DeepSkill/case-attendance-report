@@ -1,14 +1,15 @@
 "use client";
 
 import { fetchAttendanceReport } from "@/app/lib/api";
-import { AttendanceReportResponse } from "@/app/lib/types";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function AttendancePage() {
   const searchParams = useSearchParams();
   const programId = Number(searchParams.get("programId") ?? "1");
-  const [data, setData] = useState<AttendanceReportResponse | null>(null);
+  const [data, setData] = useState<Awaited<
+    ReturnType<typeof fetchAttendanceReport>
+  > | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<"rating" | "date" | null>(null);
@@ -103,7 +104,41 @@ export default function AttendancePage() {
                 </Th>
               </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+              {sortedItems.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    style={{ textAlign: "center", padding: 24, color: "#666" }}
+                  >
+                    No attendance records found
+                  </td>
+                </tr>
+              ) : (
+                sortedItems.map((item, index) => (
+                  <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                    <td style={{ padding: "8px 4px" }}>{item.programId}</td>
+                    <td style={{ padding: "8px 4px" }}>{item.coachId}</td>
+                    <td style={{ padding: "8px 4px" }}>
+                      <span
+                        style={{
+                          color: item.present ? "#22c55e" : "#ef4444",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {item.present ? "✓ Present" : "✗ Absent"}
+                      </span>
+                    </td>
+                    <td style={{ padding: "8px 4px" }}>
+                      {item.rating ? item.rating.toFixed(1) : "N/A"}
+                    </td>
+                    <td style={{ padding: "8px 4px" }}>
+                      {new Date(item.date).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
           </table>
         </>
       )}

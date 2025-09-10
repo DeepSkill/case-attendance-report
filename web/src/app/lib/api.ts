@@ -12,9 +12,17 @@ import { AttendanceReportResponse } from "./types";
  * @param programId - The ID of the program to fetch attendance data for
  * @returns Promise<AttendanceReportResponse> - The attendance report data
  */
+
 export async function fetchAttendanceReport(
   programId: number
 ): Promise<AttendanceReportResponse> {
-  // TODO: Implement this function
-  throw new Error("fetchAttendanceReport not implemented");
+  const url = `${
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:1337"
+  }/api/reports/attendance?programId=${programId}`;
+  const res = await fetch(url, {
+    cache: "no-store",
+    headers: { "x-hr": "1" }, // interview shortcut: pretend HR user
+  });
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  return res.json() as Promise<AttendanceReportResponse>;
 }
