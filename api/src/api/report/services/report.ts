@@ -6,19 +6,11 @@ import { factories } from "@strapi/strapi";
 
 /** Pure KPI computation so it can be unit-tested easily */
 function computeKpisFromItems(items) {
-  if (!items || items.length === 0) {
-    return { attendancePct: 0, noShowPct: 0, avgRating: 0 };
-  }
-  const total = items.length;
-  const present = items.filter((x) => x.present).length;
-  const rated = items.filter((x) => typeof x.rating === "number");
-  const avgRating = rated.length
-    ? rated.reduce((s, x) => s + x.rating, 0) / rated.length
-    : 0;
+  /* To be implemented */
   return {
-    attendancePct: (present / total) * 100,
-    noShowPct: ((total - present) / total) * 100,
-    avgRating,
+    attendancePct: 0,
+    noShowPct: 0,
+    avgRating: 0,
   };
 }
 
