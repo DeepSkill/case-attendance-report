@@ -34,26 +34,22 @@ If you prefer to set up manually:
 **Implementation Required**: Create a policy to protect the attendance reports endpoint. The policy should:
 
 1. Check for the `x-hr` header in the request
-2. Allow access only when the header value is `1` (indicating HR user)
+2. Allow access only when the header value is `1` or true (indicating HR user)
 3. Return appropriate error response (401/403) for unauthorized access
 4. Apply this policy to the `GET /api/reports/attendance` route
-
-**Files to modify**: Look for policy configuration files in the `/api` directory, typically in `config/policies.js` or similar.
 
 ### Task B (Lifecycle): On attendance create/update, recompute/persist KPIs into program-stats.
 
 **Implementation Required**: Create lifecycle hooks to automatically update KPIs when attendance records change. The implementation should:
 
 1. Create a lifecycle hook for attendance model (create/update/delete operations)
-2. Recalculate KPIs using the existing `computeKpisFromItems` function from `/web/src/app/lib/computeKpis.ts`
+2. Recalculate KPIs using (and implementing) the existing functions in the report service
 3. Store the computed KPIs in a `program-stats` collection/content type
 4. Ensure the KPI calculation includes:
    - Attendance percentage
    - No-show percentage
    - Average rating
 5. Handle edge cases (empty data, division by zero, etc.)
-
-**Files to modify**: Look for lifecycle hook configuration in the `/api` directory, typically in `src/api/attendance/content-types/attendance/lifecycles.js` or similar.
 
 ### Task C (Frontend): Fetch KPIs and render in a prebuilt table (wire data + 1 enhancement: sort or paginate).
 
