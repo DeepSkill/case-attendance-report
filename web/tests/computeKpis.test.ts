@@ -1,5 +1,4 @@
 import { computeKpisFromItems } from "@/app/lib/computeKpis";
-import { describe, expect, it } from "vitest";
 
 describe("computeKpisFromItems", () => {
   it("handles empty", () => {
