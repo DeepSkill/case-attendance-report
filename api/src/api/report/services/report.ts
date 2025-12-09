@@ -1,10 +1,10 @@
 /**
- * report service
+ * Report service
  */
 
 import { factories } from "@strapi/strapi";
 
-/** Pure KPI computation so it can be unit-tested easily */
+/** Pure KPI computation - can be unit-tested easily */
 function computeKpisFromItems(items) {
   if (!items || items.length === 0) {
     return { attendancePct: 0, noShowPct: 0, avgRating: 0 };
@@ -25,7 +25,7 @@ function computeKpisFromItems(items) {
 export default factories.createCoreService(
   "api::report.report",
   ({ strapi }) => ({
-    /** Compute from DB (attendance content-type) */
+    /** Compute KPIs from attendance records for a program */
     async compute(programId) {
       const items = await strapi.entityService.findMany(
         "api::attendance.attendance",
@@ -39,6 +39,7 @@ export default factories.createCoreService(
       return computeKpisFromItems(items);
     },
 
+    /** List attendance records for a program */
     async listAttendance(programId) {
       return await strapi.entityService.findMany("api::attendance.attendance", {
         filters: { programId },
@@ -49,31 +50,22 @@ export default factories.createCoreService(
       });
     },
 
-    /** Lifecycle helper to persist current KPIs into program-stats */
+    /**
+     * TODO: Implement this method for the interview test.
+     * This method should:
+     * 1. Compute the current KPIs using this.compute(programId)
+     * 2. Find existing program-stat for this programId (or create new one)
+     * 3. Update/create the program-stat with the computed KPIs
+     *
+     * Hint: Use strapi.entityService.findMany/update/create
+     * Hint: The program-stat content type is "api::program-stat.program-stat"
+     *
+     * @param programId - The program ID to recompute KPIs for
+     * @returns The computed KPIs
+     */
     async recompute(programId) {
-      const kpis = await this.compute(programId);
-      const [existing] = await strapi.entityService.findMany(
-        "api::program-stat.program-stat",
-        {
-          filters: { programId },
-          limit: 1,
-        }
-      );
-      if (existing) {
-        await strapi.entityService.update(
-          "api::program-stat.program-stat",
-          existing.id,
-          { data: { ...kpis } }
-        );
-      } else {
-        await strapi.entityService.create("api::program-stat.program-stat", {
-          data: { programId, ...kpis },
-        });
-      }
-      return kpis;
+      // TODO: Implement KPI persistence to program-stats
+      throw new Error("recompute not implemented");
     },
-
-    // export for unit tests if desired
-    _test: { computeKpisFromItems },
   })
 );
