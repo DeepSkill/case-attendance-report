@@ -68,7 +68,7 @@ The TypeScript interfaces are already defined in `/web/src/app/lib/types.ts` to 
 
 ### Task D (Unit Test): Write a focused test for KPI aggregation.
 
-### Task E (PR): Push branch and open a Pull Request using the provided template.
+### Task E (PR): Create a branch, commit your changes, push your changes and open a Pull Request.
 
 ## Credentials
 
