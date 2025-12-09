@@ -1,10 +1,10 @@
 /**
- * report service
+ * Report service
  */
 
 import { factories } from "@strapi/strapi";
 
-/** Pure KPI computation so it can be unit-tested easily */
+/** Pure KPI computation - can be unit-tested easily */
 function computeKpisFromItems(items) {
   /* To be implemented */
   return {
@@ -17,7 +17,7 @@ function computeKpisFromItems(items) {
 export default factories.createCoreService(
   "api::report.report",
   ({ strapi }) => ({
-    /** Compute from DB (attendance content-type) */
+    /** Compute KPIs from attendance records for a program */
     async compute(programId) {
       const items = await strapi.entityService.findMany(
         "api::attendance.attendance",
@@ -31,6 +31,7 @@ export default factories.createCoreService(
       return computeKpisFromItems(items);
     },
 
+    /** List attendance records for a program */
     async listAttendance(programId) {
       return await strapi.entityService.findMany("api::attendance.attendance", {
         filters: { programId },
@@ -41,31 +42,14 @@ export default factories.createCoreService(
       });
     },
 
-    /** Lifecycle helper to persist current KPIs into program-stats */
+    /**
+     * TODO: Implement for Task B
+     * Persist computed KPIs to program-stats collection.
+     * Use "api::program-stat.program-stat" content type.
+     */
     async recompute(programId) {
-      const kpis = await this.compute(programId);
-      const [existing] = await strapi.entityService.findMany(
-        "api::program-stat.program-stat",
-        {
-          filters: { programId },
-          limit: 1,
-        }
-      );
-      if (existing) {
-        await strapi.entityService.update(
-          "api::program-stat.program-stat",
-          existing.id,
-          { data: { ...kpis } }
-        );
-      } else {
-        await strapi.entityService.create("api::program-stat.program-stat", {
-          data: { programId, ...kpis },
-        });
-      }
-      return kpis;
+      // TODO: Implement
+      throw new Error("recompute not implemented");
     },
-
-    // export for unit tests if desired
-    _test: { computeKpisFromItems },
   })
 );

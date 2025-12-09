@@ -6,6 +6,9 @@ module.exports = {
       method: "GET",
       path: "/reports/attendance",
       handler: "report.attendance",
+      config: {
+        policies: ["is-hr"],
+      },
     },
   ],
 };
