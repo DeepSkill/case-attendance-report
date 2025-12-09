@@ -1,23 +1,46 @@
 /**
- * report service
+ * Report service
+ * Handles KPI computation and attendance data retrieval.
  */
 
 import { factories } from "@strapi/strapi";
 
-/** Pure KPI computation so it can be unit-tested easily */
-function computeKpisFromItems(items) {
+interface AttendanceItem {
+  present?: boolean;
+  rating?: number;
+}
+
+interface Kpis {
+  attendancePct: number;
+  noShowPct: number;
+  avgRating: number;
+}
+
+/**
+ * Pure KPI computation function - can be unit-tested without Strapi.
+ * @param items - Array of attendance items with present and optional rating
+ * @returns Computed KPIs: attendance %, no-show %, and average rating
+ */
+export function computeKpisFromItems(
+  items: AttendanceItem[] | null | undefined
+): Kpis {
   if (!items || items.length === 0) {
     return { attendancePct: 0, noShowPct: 0, avgRating: 0 };
   }
+
   const total = items.length;
-  const present = items.filter((x) => x.present).length;
-  const rated = items.filter((x) => typeof x.rating === "number");
-  const avgRating = rated.length
-    ? rated.reduce((s, x) => s + x.rating, 0) / rated.length
-    : 0;
+  const presentCount = items.filter((item) => item.present === true).length;
+  const ratedItems = items.filter((item) => typeof item.rating === "number");
+
+  const avgRating =
+    ratedItems.length > 0
+      ? ratedItems.reduce((sum, item) => sum + (item.rating as number), 0) /
+        ratedItems.length
+      : 0;
+
   return {
-    attendancePct: (present / total) * 100,
-    noShowPct: ((total - present) / total) * 100,
+    attendancePct: (presentCount / total) * 100,
+    noShowPct: ((total - presentCount) / total) * 100,
     avgRating,
   };
 }
@@ -25,13 +48,15 @@ function computeKpisFromItems(items) {
 export default factories.createCoreService(
   "api::report.report",
   ({ strapi }) => ({
-    /** Compute from DB (attendance content-type) */
-    async compute(programId) {
+    /**
+     * Compute KPIs from attendance records for a program.
+     */
+    async compute(programId: number): Promise<Kpis> {
       const items = await strapi.entityService.findMany(
         "api::attendance.attendance",
         {
           filters: { programId },
-          fields: ["programId", "coachId", "present", "rating", "date"],
+          fields: ["present", "rating"],
           sort: { date: "desc" },
           publicationState: "live",
         }
@@ -39,19 +64,26 @@ export default factories.createCoreService(
       return computeKpisFromItems(items);
     },
 
-    async listAttendance(programId) {
-      return await strapi.entityService.findMany("api::attendance.attendance", {
+    /**
+     * List attendance records for a program.
+     */
+    async listAttendance(programId: number) {
+      return strapi.entityService.findMany("api::attendance.attendance", {
         filters: { programId },
-        fields: ["programId", "coachId", "present", "rating", "date"],
+        fields: ["id", "programId", "coachId", "present", "rating", "date"],
         sort: { date: "desc" },
         publicationState: "live",
         limit: 25,
       });
     },
 
-    /** Lifecycle helper to persist current KPIs into program-stats */
-    async recompute(programId) {
+    /**
+     * Lifecycle helper to recompute and persist KPIs into program-stats.
+     * Called automatically when attendance records change.
+     */
+    async recompute(programId: number): Promise<Kpis> {
       const kpis = await this.compute(programId);
+
       const [existing] = await strapi.entityService.findMany(
         "api::program-stat.program-stat",
         {
@@ -59,6 +91,7 @@ export default factories.createCoreService(
           limit: 1,
         }
       );
+
       if (existing) {
         await strapi.entityService.update(
           "api::program-stat.program-stat",
@@ -70,10 +103,8 @@ export default factories.createCoreService(
           data: { programId, ...kpis },
         });
       }
+
       return kpis;
     },
-
-    // export for unit tests if desired
-    _test: { computeKpisFromItems },
   })
 );

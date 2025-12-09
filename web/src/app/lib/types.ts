@@ -2,6 +2,7 @@
  * Interface for individual attendance report items
  */
 export interface AttendanceReportItem {
+  id: number;
   programId: number;
   coachId: number;
   present: boolean;

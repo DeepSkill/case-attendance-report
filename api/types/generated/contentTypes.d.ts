@@ -423,7 +423,7 @@ export interface ApiProgramStatProgramStat extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
-    attendancePct: Schema.Attribute.Integer &
+    attendancePct: Schema.Attribute.Decimal &
       Schema.Attribute.SetMinMax<
         {
           max: 100;
@@ -448,7 +448,7 @@ export interface ApiProgramStatProgramStat extends Struct.CollectionTypeSchema {
       'api::program-stat.program-stat'
     > &
       Schema.Attribute.Private;
-    noShowPct: Schema.Attribute.Integer &
+    noShowPct: Schema.Attribute.Decimal &
       Schema.Attribute.SetMinMax<
         {
           max: 100;
