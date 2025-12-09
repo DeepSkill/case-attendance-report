@@ -51,20 +51,12 @@ export default factories.createCoreService(
     },
 
     /**
-     * TODO: Implement this method for the interview test.
-     * This method should:
-     * 1. Compute the current KPIs using this.compute(programId)
-     * 2. Find existing program-stat for this programId (or create new one)
-     * 3. Update/create the program-stat with the computed KPIs
-     *
-     * Hint: Use strapi.entityService.findMany/update/create
-     * Hint: The program-stat content type is "api::program-stat.program-stat"
-     *
-     * @param programId - The program ID to recompute KPIs for
-     * @returns The computed KPIs
+     * TODO: Implement for Task B
+     * Persist computed KPIs to program-stats collection.
+     * Use "api::program-stat.program-stat" content type.
      */
     async recompute(programId) {
-      // TODO: Implement KPI persistence to program-stats
+      // TODO: Implement
       throw new Error("recompute not implemented");
     },
   })
