@@ -16,7 +16,7 @@ Then start the development server:
 pnpm dev
 ```
 
-This will start both the API server (http://localhost:1337) and the web frontend.
+This will start both the API server (http://localhost:1337) and the web frontend (http://localhost:3000).
 
 ## Manual Setup
 
@@ -29,49 +29,102 @@ If you prefer to set up manually:
 
 ## Goals
 
-### Task A (Policy): Protect GET /api/reports/attendance with is-hr policy.
+### Task A (Policy): Protect GET /api/reports/attendance with is-hr policy
 
-**Implementation Required**: Create a policy to protect the attendance reports endpoint. The policy should:
+**File to modify:** `api/src/api/report/policies/is-hr.ts`
+
+Implement the policy stub to protect the attendance reports endpoint:
 
 1. Check for the `x-hr` header in the request
-2. Allow access only when the header value is `1` (indicating HR user)
-3. Return appropriate error response (403) for unauthorized access
-4. Apply this policy to the `GET /api/reports/attendance` route
+2. Return `true` when header value is `"1"` (allow access)
+3. Return `false` otherwise (Strapi automatically returns 403 Forbidden)
 
-**Files to modify**: Look for policy configuration files in the `/api` directory, typically in `config/policies.js` or similar.
+**Hint:** Access headers via `policyContext.request.get("x-hr")`
 
-### Task B (Lifecycle): On attendance create/update, recompute/persist KPIs into program-stats.
+**Note:** The route configuration already applies this policy - you only need to implement the policy logic.
 
-**Implementation Required**: Create lifecycle hooks to automatically update KPIs when attendance records change. The implementation should:
+---
 
-1. Create a lifecycle hook for attendance model (create/update/delete operations)
-2. Recalculate KPIs using the functions provided in the report service at `/api/src/api/report/services/report.ts`
-3. Store the computed KPIs in a `program-stats` collection/content type
-4. Ensure the KPI calculation includes:
-   - Attendance percentage
-   - No-show percentage
-   - Average rating
-5. Handle edge cases (empty data, division by zero, etc.)
+### Task B (Lifecycle): On attendance create/update/delete, recompute and persist KPIs
 
-**Files to modify**: Look for lifecycle hook configuration in the `/api` directory, typically in `src/api/attendance/content-types/attendance/lifecycles.js` or similar. Implement the service functions in the report service at `/api/src/api/report/services/report.ts`
+**Files to modify:**
 
-### Task C (Frontend): Fetch KPIs and render in a prebuilt table (wire data + 1 enhancement: sort or paginate).
+- `api/src/api/attendance/content-types/attendance/lifecycles.ts` - Lifecycle hooks
+- `api/src/api/report/services/report.ts` - The `recompute()` and `computeKpisFromItems()` methods
 
-**Implementation Required**: The `fetchAttendanceReport` function in `/web/src/app/lib/api.ts` needs to be implemented. The function should:
+Implement lifecycle hooks to automatically update KPIs when attendance records change:
 
-1. Make an API call to `GET /api/reports/attendance?programId={programId}`
-2. Include the `x-hr: 1` header for authentication
-3. Handle errors appropriately
-4. Return data matching the `AttendanceReportResponse` interface
+1. Add `afterCreate`, `afterUpdate`, and `afterDelete` hooks in `lifecycles.ts`
+2. Each hook should call `strapi.service("api::report.report").recompute(programId)`
+3. Implement the `recompute()` method in the report service to:
+   - Compute KPIs using `computeKpisFromItems()`
+   - Find or create a `program-stat` record for the programId
+   - Store the computed KPIs (attendancePct, noShowPct, avgRating)
+4. Implement `computeKpisFromItems()` to calculate:
+   - Attendance percentage: `(present / total) * 100`
+   - No-show percentage: `((total - present) / total) * 100`
+   - Average rating: average of all items with a rating
 
-The TypeScript interfaces are already defined in `/web/src/app/lib/types.ts` to guide the implementation.
+**Hints:**
 
-### Task D (Unit Test): Write a focused test for KPI aggregation.
+- Access programId from `event.result.programId` in lifecycle hooks
+- Use `strapi.entityService.findMany/update/create` for database operations
+- The program-stat content type is `"api::program-stat.program-stat"`
+- Handle errors gracefully in lifecycle hooks (log but don't throw)
 
-### Task E (PR): Create a branch, commit your changes, push your changes and open a Pull Request.
+---
+
+### Task C (Frontend): Fetch KPIs and render with sorting
+
+**Files to modify:**
+
+- `web/src/app/lib/api.ts` - The `fetchAttendanceReport()` function
+- `web/src/app/reports/attendance/page.tsx` - Wire up data and add sorting
+
+Implement the frontend to display attendance data:
+
+1. **API Function** (`api.ts`):
+
+   - Make a GET request to `/api/reports/attendance?programId={programId}`
+   - Include the `x-hr: 1` header for authentication
+   - Handle errors appropriately
+   - Return data matching the `AttendanceReportResponse` interface
+
+2. **Page Component** (`page.tsx`):
+   - Fetch data using the API function
+   - Display KPIs (attendance %, no-show %, avg rating)
+   - Render attendance items in the table
+   - Handle loading and error states
+   - **Enhancement:** Add sorting by rating or date (clickable column headers)
+
+**Hint:** The TypeScript interfaces in `web/src/app/lib/types.ts` define the expected data structure.
+
+---
+
+### Task D (Unit Test): Write focused tests for KPI aggregation
+
+**File to create:** `api/tests/computeKpis.test.ts`
+
+Write unit tests for the `computeKpisFromItems` function using Jest:
+
+1. Test edge cases (empty array, null/undefined input)
+2. Test attendance calculations (100%, 0%, mixed)
+3. Test rating calculations (with ratings, without ratings, partial ratings)
+4. Ensure `attendancePct + noShowPct = 100%`
+
+**Run tests with:** `cd api && npm test`
+
+---
+
+### Task E (PR): Push branch and open a Pull Request
+
+Push your implementation branch and open a Pull Request using the provided template.
+
+---
 
 ## Credentials
 
-### Strapi
+### Strapi Admin
 
-Admin: john@doe.com - sE\*PxAghULN!8lrROE7aGuNvon2RP&hH
+- Email: `john@doe.com`
+- Password: `sE*PxAghULN!8lrROE7aGuNvon2RP&hH`
