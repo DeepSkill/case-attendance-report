@@ -29,7 +29,7 @@ pnpm install
 # Rebuild better-sqlite3 to ensure native bindings are correct
 echo "🔧 Rebuilding better-sqlite3 native bindings..."
 cd api
-npm rebuild better-sqlite3
+pnpm rebuild better-sqlite3
 cd ..
 
 # Verify database file exists
